@@ -1,0 +1,20 @@
+CONFERÊNCIA DE MAQUINETAS — PUBLICAÇÃO HTTPS
+
+ARQUIVO PRINCIPAL: index.html
+
+Para a câmera funcionar no iPhone, publique o index.html em um site HTTPS.
+O HTML tenta carregar a biblioteca do leitor por três CDNs diferentes, mas o leitor precisa de acesso à internet para carregar na primeira abertura.
+
+OPÇÃO SIMPLES: GitHub Pages
+1. Em um computador ou no navegador, entre em github.com e faça login/crie uma conta.
+2. Crie um repositório novo (por exemplo: conferencia-maquinetas). Se autorizado pela TI, marque Public.
+3. Envie o arquivo index.html para a raiz do repositório (Add file / Upload files).
+4. Abra Settings > Pages.
+5. Em Build and deployment, escolha Deploy from a branch; selecione main e / (root), depois Save.
+6. Aguarde a publicação e abra o endereço HTTPS informado na página Pages.
+7. No iPhone, abra esse endereço no Safari, permita o acesso à câmera e toque em Abrir câmera.
+
+IMPORTANTE
+- O repositório público expõe o HTML e a lista de números de série cadastrada. Use apenas porque a TI autorizou a publicação pública.
+- A moldura verde no centro indica a área de leitura; mantenha apenas o código do número de série dentro dela.
+- O leitor ainda depende de internet para baixar a biblioteca de leitura. A página em si deve ser HTTPS para liberar a câmera.
