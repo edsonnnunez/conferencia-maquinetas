@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#155d45">
+<title>Conferência de maquinetas</title>
+<script>
+(function loadBarcodeLibrary(){
+  const sources = [
+    'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js',
+    'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js',
+    'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'
+  ];
+  let index = 0;
+  function next(){
+    if(index >= sources.length) { window.barcodeLibraryFailed = true; return; }
+    const script = document.createElement('script');
+    script.src = sources[index++];
+    script.onerror = () => { script.remove(); next(); };
+    document.head.appendChild(script);
+  }
+  next();
+})();
+</script>
+<style>
+  :root{--green:#155d45;--green2:#20785a;--ink:#17221d;--muted:#65736b;--bg:#f3f6f4;--card:#fff;--line:#dce5df;--red:#ad3434;--amber:#946200;--blue:#295d93}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+  header{background:var(--green);color:#fff;padding:23px 18px 18px;padding-top:calc(20px + env(safe-area-inset-top));}
+  .topline{font-size:12px;text-transform:uppercase;letter-spacing:.09em;opacity:.82;font-weight:700}
+  h1{font-size:25px;line-height:1.15;margin:8px 0 7px;letter-spacing:-.035em}
+  header p{font-size:14px;line-height:1.4;margin:0;opacity:.91;max-width:540px}
+  main{max-width:760px;margin:0 auto;padding:15px}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 9px;min-width:0}
+  .stat strong{font-size:23px;display:block;letter-spacing:-.04em;line-height:1.15}
+  .stat span{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.2}
+  .progress-track{height:8px;background:#e0e9e3;border-radius:99px;overflow:hidden;margin:-2px 0 15px}
+  .progress-fill{height:100%;width:0;background:var(--green2);transition:width .2s ease}
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#e7ede9;padding:5px;border-radius:13px;margin-bottom:13px}
+  .tab{border:0;background:transparent;color:#4d5e54;padding:11px 6px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+  .tab.active{background:#fff;color:var(--green);box-shadow:0 1px 3px #173d2817}
+  .panel{display:none}.panel.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px #193b2710}
+  h2{font-size:17px;margin:0 0 7px;letter-spacing:-.02em}
+  .hint{color:var(--muted);font-size:13px;line-height:1.45;margin:0 0 13px}
+  .buttons{display:flex;gap:8px;flex-wrap:wrap}
+  button,.button{font:inherit;cursor:pointer}
+  .primary,.secondary,.danger{border:0;border-radius:11px;padding:12px 14px;font-weight:750;font-size:14px;min-height:44px}
+  .primary{background:var(--green);color:#fff}.secondary{background:#e9f0eb;color:var(--green)}.danger{background:#fff0f0;color:var(--red)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  #reader{display:none;width:100%;overflow:hidden;border-radius:12px;background:#111;margin:12px 0}
+  #reader video{object-fit:cover;border-radius:12px}
+  #reader__scan_region{position:relative!important;min-height:230px}
+  /* Área de leitura ajustada com feixe fino e elegante */
+  #reader__scan_region::after{content:'';position:absolute;left:5%;width:90%;top:50%;height:52px;transform:translateY(-50%);border:2px solid #22c55e;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.28);pointer-events:none;z-index:5}
+  /* Linha verde horizontal bem fina no centro exato da leitura */
+  #reader__scan_region::before{content:'';position:absolute;left:6%;width:88%;top:50%;height:2px;background-color:#00ff66;transform:translateY(-50%);z-index:6;pointer-events:none;box-shadow:0 0 6px #00ff66}
+  #reader__scan_region img{display:none!important}
+  #reader__dashboard{padding:8px!important}
+  .scan-guide{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
+  #reader__dashboard_section_csr button,#reader button{border-radius:9px!important;padding:9px!important;margin:5px!important}
+  .status-box{border-radius:12px;background:#f2f6f3;border:1px solid var(--line);padding:12px;margin-top:12px;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+  .status-box.good{background:#eaf7ee;border-color:#bfdfc9;color:#175c33}.status-box.warn{background:#fff7e5;border-color:#eed8a1;color:#795200}.status-box.bad{background:#fff0f0;border-color:#efc8c8;color:#8e2727}
+  .manual{display:flex;gap:8px;margin-top:12px}.manual input{flex:1;min-width:0;border:1px solid #bdcbc1;border-radius:11px;padding:12px;font-size:16px;text-transform:uppercase;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus{outline:2px solid #81b69a;outline-offset:1px}
+  .small-label{font-weight:750;font-size:12px;color:#49584f;display:block;margin:14px 0 7px}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff;min-width:0}
+  .item-main{flex:1;min-width:0}.serial{font-weight:800;font-size:14px;overflow-wrap:anywhere;letter-spacing:.01em}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .pill{font-size:10px;font-weight:800;letter-spacing:.025em;padding:5px 7px;border-radius:99px;white-space:nowrap;align-self:flex-start}
+  .pill.good{background:#e6f5e9;color:#1b6a35}.pill.nogood{background:#fff0d4;color:#875500}.pill.done{background:#dff3e6;color:#17653a}.pill.pending{background:#edf0ee;color:#66736a}.pill.extra{background:#ffe8e8;color:#9a2e2e}
+  .empty{padding:18px 12px;text-align:center;color:var(--muted);border:1px dashed #cbd8ce;border-radius:12px;font-size:13px}
+  textarea{width:100%;min-height:230px;border:1px solid #bdcbc1;border-radius:11px;padding:12px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
+  .note{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 1px 0}
+  .section-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:17px 0 9px}
+  .section-heading h3{margin:0;font-size:14px}
+  .count{font-size:12px;color:var(--muted);font-weight:700}
+  .item .remove{background:#f5f6f5;border:0;color:#5b665e;border-radius:8px;padding:6px 8px;font-size:12px}
+  footer{text-align:center;color:#7b887f;font-size:11px;padding:8px 20px 0;line-height:1.5}
+  @media(min-width:560px){main{padding:20px}.stat{padding:14px}.stat strong{font-size:27px}.stat span{font-size:12px}}
+  @media(max-width:365px){.stats{gap:5px}.stat{padding:10px 6px}.stat strong{font-size:20px}.stat span{font-size:10px}.primary,.secondary,.danger{padding:11px;font-size:13px}}
+
+  @media print{
+    body{background:#fff;padding:0;color:#111} header{background:#fff!important;color:#111;padding:8px 0;border-bottom:2px solid #155d45} header p{color:#333} main{max-width:none;padding:8px}.tabs,#panel-scan,#panel-list,.buttons .danger,footer{display:none!important}#panel-check{display:block!important}.panel{display:block!important}.card{box-shadow:none;border:0;padding:4px}.item{break-inside:avoid}.stats{grid-template-columns:repeat(4,1fr)}button{display:none!important} .section-heading{break-after:avoid}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="topline">Controle local de estoque</div>
+  <h1>Conferência de maquinetas</h1>
+  <p>Escaneie o código de barras de cada caixa e veja na hora o que está conferido, o que falta e quais máquinas não constam na lista oficial.</p>
+</header>
+<main>
+  <section class="stats" aria-label="Resumo da conferência">
+    <div class="stat"><strong id="stat-total">19</strong><span>Na lista</span></div>
+    <div class="stat"><strong id="stat-done">0</strong><span>Conferidas</span></div>
+    <div class="stat"><strong id="stat-pending">19</strong><span>Faltando</span></div>
+    <div class="stat"><strong id="stat-extra">0</strong><span>Não listadas</span></div>
+  </section>
+  <div class="progress-track" aria-label="Progresso da conferência"><div class="progress-fill" id="progress"></div></div>
+  <nav class="tabs" aria-label="Seções">
+    <button class="tab active" data-tab="scan">📷 Escanear</button>
+    <button class="tab" data-tab="check">☑ Conferência</button>
+    <button class="tab" data-tab="list">☷ Lista</button>
+  </nav>
+
+  <section class="panel active" id="panel-scan">
+    <div class="card">
+      <h2>Leia o código da caixa</h2>
+      <p class="hint">Toque em “Abrir câmera” para iniciar o scanner. Códigos válidos (GOOD, NO GOOD ou não listados) são processados automaticamente com alertas sonoros e vibração.</p>
+      <div class="buttons">
+        <button class="primary" id="start-camera">Abrir câmera</button>
+        <button class="secondary" id="stop-camera" hidden>Parar câmera</button>
+        <button class="secondary" id="flash-toggle" hidden aria-pressed="false">🔦 Ligar flash</button>
+      </div>
+      <div id="reader"></div>
+      <p class="scan-guide">Dica: mantenha a etiqueta do número de série alinhada dentro da linha verde central. Códigos desconhecidos não são descartados e vão para a seção de revisão.</p>
+      <div id="scan-status" class="status-box" role="status" aria-live="polite">Pronto para conferir. Toque em "Abrir câmera" ou digite o número de série abaixo.</div>
+      <label class="small-label" for="manual-code">Digitar número de série</label>
+      <form class="manual" id="manual-form">
+        <input id="manual-code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ex.: 238PFD8K4251" aria-label="Número de série">
+        <button class="primary" type="submit">Conferir</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Classificação de resultados</h2>
+      <div class="item"><div class="item-main"><div class="serial">GOOD / NO GOOD</div><div class="sub">Máquinas cadastradas na relação oficial da central. Emitirão bipe agudo (GOOD) ou duplo intermediário (NO GOOD).</div></div></div>
+      <div class="item" style="margin-top:8px"><div class="item-main"><div class="serial">Máquinas não listadas</div><div class="sub">Qualquer código lido que não conste na lista oficial. Emitirá 3 bipes graves e será registrado com contador de leituras e horário para notificação.</div></div></div>
+      <p class="note">O progresso é salvo no navegador do seu celular. Não limpe os dados do Safari antes de exportar o relatório.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-check">
+    <div class="card">
+      <h2>Resultado da conferência</h2>
+      <p class="hint">Acompanhe abaixo o status dos itens esperados e a seção exclusiva para as maquinetas não listadas.</p>
+      <div class="buttons">
+        <button class="primary" id="export-csv">Exportar relatório CSV</button>
+        <button class="secondary" id="export-txt">Salvar resumo .TXT</button>
+        <button class="secondary" id="export-pdf">Exportar / salvar PDF</button>
+      </div>
+      <div class="section-heading"><h3>GOOD — pronta venda</h3><span class="count" id="good-count"></span></div>
+      <div class="list" id="good-list"></div>
+      <div class="section-heading"><h3>NO GOOD — devolvidas</h3><span class="count" id="nogood-count"></span></div>
+      <div class="list" id="nogood-list"></div>
+      <div class="section-heading"><h3>Máquinas não listadas — revisar/notificar</h3><span class="count" id="extra-count"></span></div>
+      <div class="list" id="extra-list"></div>
+      <div class="buttons" style="margin-top:16px"><button class="danger" id="reset-progress">Zerar conferência</button></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-list">
+    <div class="card">
+      <h2>Lista da central</h2>
+      <p class="hint">Lista oficial cadastrada. Para atualizar, edite ou cole os dados abaixo (um por linha).</p>
+      <label class="small-label" for="inventory-editor">Número de série; situação</label>
+      <textarea id="inventory-editor" spellcheck="false"></textarea>
+      <p class="note">Formato aceito: <strong>SERIAL;GOOD</strong> ou <strong>SERIAL;NO GOOD</strong>.</p>
+      <div class="buttons" style="margin-top:13px">
+        <button class="primary" id="apply-list">Aplicar lista</button>
+        <button class="secondary" id="restore-list">Restaurar lista inicial</button>
+      </div>
+    </div>
+  </section>
+  <footer>Ferramenta de apoio à conferência física de maquinetas.</footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const STORAGE_INVENTORY = 'maquinetas_inventory_v3';
+  const STORAGE_PROGRESS = 'maquinetas_progress_v3';
+  const seed = [
+    {serial:'238PFD8K4251', situation:'GOOD'},
+    {serial:'238FFD8J4175', situation:'GOOD'},
+    {serial:'227DFD8P8618', situation:'GOOD'},
+    {serial:'239EFD8K7792', situation:'GOOD'},
+    {serial:'2426FD8S9852', situation:'GOOD'},
+    {serial:'2426FD8S1930', situation:'GOOD'},
+    {serial:'246LFD8J4702', situation:'GOOD'},
+    {serial:'243JFD8Y6159', situation:'GOOD'},
+    {serial:'246LFD8J9581', situation:'GOOD'},
+    {serial:'2471FD8L0525', situation:'GOOD'},
+    {serial:'247PFD8R9693', situation:'GOOD'},
+    {serial:'247PFD8S5966', situation:'GOOD'},
+    {serial:'2495FD836818', situation:'GOOD'},
+    {serial:'24A9FD8J5604', situation:'GOOD'},
+    {serial:'24B7FD821265', situation:'GOOD'},
+    {serial:'C046LG53860236', situation:'NO GOOD'},
+    {serial:'C046LG51851912', situation:'NO GOOD'},
+    {serial:'PB1S259Q79252', situation:'NO GOOD'},
+    {serial:'66933301051730963497', situation:'NO GOOD'}
+  ];
+  const $ = id => document.getElementById(id);
+  const normalize = value => String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const cloneSeed = () => seed.map(x => ({...x}));
+  let inventory = loadInventory();
+  let progress = loadProgress();
+  let scanner = null;
+  let cameraRunning = false;
+  let lastRead = {code:'', at:0};
+
+  function loadInventory(){
+    try { const v = JSON.parse(localStorage.getItem(STORAGE_INVENTORY)); if (Array.isArray(v) && v.length) return v; } catch(e) {}
+    return cloneSeed();
+  }
+  function loadProgress(){
+    try { const v = JSON.parse(localStorage.getItem(STORAGE_PROGRESS)); if (v && typeof v === 'object') return {scanned:v.scanned || {}, extras:Array.isArray(v.extras)?v.extras:[]}; } catch(e) {}
+    return {scanned:{}, extras:[]};
+  }
+  function persist(){
+    try { localStorage.setItem(STORAGE_INVENTORY, JSON.stringify(inventory)); localStorage.setItem(STORAGE_PROGRESS, JSON.stringify(progress)); }
+    catch(e) { setStatus('Não consegui salvar neste navegador. Exporte o relatório antes de fechar a página.', 'warn'); }
+  }
+  function esc(s){return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function keyFor(serial){return normalize(serial);}
+  function itemByCode(code){ const key=normalize(code); return inventory.find(x => keyFor(x.serial) === key); }
+  function isScanned(item){return Boolean(progress.scanned[keyFor(item.serial)]);}
+  function setStatus(message, kind=''){ const el=$('scan-status'); el.className='status-box'+(kind?' '+kind:''); el.textContent=message; }
+
+  function updateStats(){
+    const done=inventory.filter(isScanned).length;
+    const pending=inventory.length-done;
+    $('stat-total').textContent=inventory.length;
+    $('stat-done').textContent=done;
+    $('stat-pending').textContent=pending;
+    $('stat-extra').textContent=progress.extras.length;
+    $('progress').style.width=(inventory.length?done/inventory.length*100:0)+'%';
+    if (inventory.length && pending===0) $('progress').style.background='#20785a';
+  }
+
+  // Web Audio API para os 3 sinais sonoros distintos
+  let audioCtx = null;
+  function unlockAudio(){
+    try {
+      if(!audioCtx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(AC) audioCtx = new AC();
+      }
+      if(audioCtx && audioCtx.state === 'suspended'){
+        audioCtx.resume();
+      }
+    } catch(e){}
+  }
+
+  function playSound(type){
+    try {
+      unlockAudio();
+      if(!audioCtx) return;
+      const now = audioCtx.currentTime;
+
+      if(type === 'good'){
+        // 1 bip agudo e curto
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1250, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now); osc.stop(now + 0.1);
+      } else if(type === 'nogood'){
+        // 2 bipes de tonalidade intermediária
+        [0, 0.12].forEach(offset => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(750, now + offset);
+          gain.gain.setValueAtTime(0.15, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.09);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now + offset); osc.stop(now + offset + 0.09);
+        });
+      } else if(type === 'extra'){
+        // 3 bipes mais graves
+        [0, 0.15, 0.30].forEach(offset => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, now + offset);
+          gain.gain.setValueAtTime(0.18, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.11);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now + offset); osc.stop(now + offset + 0.11);
+        });
+      }
+    } catch(e){}
+  }
+
+  function triggerVibration(){
+    try {
+      if(navigator.vibrate){
+        navigator.vibrate(70);
+      }
+    } catch(e){}
+  }
+
+  function scanCode(rawCode, source='manual'){
+    const raw=String(rawCode ?? '').trim();
+    const norm=normalize(raw);
+    if(!norm){setStatus('Não consegui identificar o número. Centralize o código de barras.','warn');return;}
+
+    triggerVibration();
+
+    const item=itemByCode(norm);
+    if(item){
+      if(item.situation === 'GOOD') playSound('good');
+      else playSound('nogood');
+
+      const k=keyFor(item.serial);
+      if(progress.scanned[k]){
+        setStatus('Bipe: já conferida '+item.serial+' ('+item.situation+').','warn');
+      } else {
+        progress.scanned[k]={at:new Date().toISOString(), raw:raw};
+        persist(); render();
+        setStatus('✓ Conferida: '+item.serial+' — '+(item.situation==='GOOD'?'GOOD, pronta venda.':'NO GOOD, devolvida/danificada.'),'good');
+        if(inventory.every(isScanned)) setStatus('✓ Lista completa: todas as '+inventory.length+' máquinas esperadas foram conferidas.','good');
+      }
+    } else {
+      // NÃO LISTADA (Registra sem descartar e adiciona ao relatório)
+      playSound('extra');
+      const existing = progress.extras.find(x => normalize(x.code) === norm);
+      const nowISO = new Date().toISOString();
+      if(!existing){
+        progress.extras.push({code:raw, normalized:norm, reads:1, firstAt:nowISO, lastAt:nowISO});
+      } else {
+        existing.reads = (existing.reads || 1) + 1;
+        existing.lastAt = nowISO;
+      }
+      persist(); render();
+      setStatus('ATENÇÃO — Maquineta NÃO LISTADA registrada: '+raw+' (Leituras: '+(existing ? existing.reads : 1)+'). Verifique na seção exclusiva.','bad');
+    }
+    $('manual-code').value='';
+  }
+
+  function itemMarkup(item){
+    const done=isScanned(item);
+    const when=done&&progress.scanned[keyFor(item.serial)].at ? new Date(progress.scanned[keyFor(item.serial)].at).toLocaleString('pt-BR') : '';
+    const situClass=item.situation==='GOOD'?'good':'nogood';
+    return `<div class="item"><div class="item-main"><div class="serial">${esc(item.serial)}</div><div class="sub">${done?'Conferida'+(when?' em '+esc(when):''):'Ainda não lida'}</div></div><span class="pill ${situClass}">${esc(item.situation)}</span><span class="pill ${done?'done':'pending'}">${done?'OK':'PENDENTE'}</span></div>`;
+  }
+
+  function renderExtras(){
+    if(!progress.extras.length){$('extra-list').innerHTML='<div class="empty">Nenhuma máquina não listada registrada.</div>';return;}
+    $('extra-list').innerHTML=progress.extras.map((x,i)=>{
+      const firstDate = x.firstAt ? new Date(x.firstAt).toLocaleString('pt-BR') : '';
+      return `<div class="item"><div class="item-main"><div class="serial">${esc(x.code)}</div><div class="sub">Primeira leitura: ${esc(firstDate)} · <strong>${x.reads||1}</strong> leitura(s)</div></div><span class="pill extra">NÃO LISTADA</span><button class="remove" data-remove-extra="${i}" aria-label="Remover registro">Remover</button></div>`;
+    }).join('');
+    document.querySelectorAll('[data-remove-extra]').forEach(btn=>btn.addEventListener('click',()=>{
+      const i=Number(btn.getAttribute('data-remove-extra'));
+      if(Number.isInteger(i)&&progress.extras[i]&&confirm('Remover este registro da lista de não listadas?')){progress.extras.splice(i,1);persist();render();setStatus('Registro removido.','');}
+    }));
+  }
+
+  function render(){
+    const goods=inventory.filter(x=>x.situation==='GOOD');
+    const nogoods=inventory.filter(x=>x.situation==='NO GOOD');
+    $('good-list').innerHTML=goods.length?goods.map(itemMarkup).join(''):'<div class="empty">Nenhum item GOOD cadastrado.</div>';
+    $('nogood-list').innerHTML=nogoods.length?nogoods.map(itemMarkup).join(''):'<div class="empty">Nenhum item NO GOOD cadastrado.</div>';
+    $('good-count').textContent=goods.filter(isScanned).length+' de '+goods.length+' conferidas';
+    $('nogood-count').textContent=nogoods.filter(isScanned).length+' de '+nogoods.length+' conferidas';
+    $('extra-count').textContent=progress.extras.length+' registrada(s)';
+    renderExtras(); updateStats();
+  }
+
+  function inventoryToEditor(list=inventory){return list.map(x=>x.serial+';'+x.situation).join('\n');}
+  function parseInventory(text){
+    const rows=[];const seen=new Set();
+    for(const line of text.split(/\r?\n/)){
+      const trimmed=line.trim();if(!trimmed)continue;
+      let fields=trimmed.includes(';')?trimmed.split(';'):trimmed.includes('\t')?trimmed.split('\t'):trimmed.includes(',')?trimmed.split(','):[trimmed];
+      fields=fields.map(s=>s.trim()).filter(Boolean);
+      if(!fields.length)continue;
+      if(/n[uú]mero|serial|situa[cç][aã]o|equip/i.test(fields[0]) && /good|situa[cç][aã]o/i.test(trimmed)) continue;
+      const serial=fields.find(f=>!/^(NO\s*GOOD|GOOD)$/i.test(f));
+      if(!serial)continue;
+      const sit=fields.some(f=>/NO\s*GOOD/i.test(f))?'NO GOOD':fields.some(f=>/^GOOD$/i.test(f))?'GOOD':'GOOD';
+      const k=normalize(serial);
+      if(!k || seen.has(k))continue;
+      seen.add(k);rows.push({serial:serial.replace(/\.$/,''),situation:sit});
+    }
+    return rows;
+  }
+
+  function switchTab(name){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
+    if(name!=='scan'&&cameraRunning) stopCamera();
+  }
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+  $('manual-form').addEventListener('submit',e=>{e.preventDefault();scanCode($('manual-code').value);});
+
+  async function startCamera(){
+    unlockAudio();
+    if(typeof Html5Qrcode==='undefined'){
+      setStatus('O leitor não carregou. Verifique sua conexão ou use a digitação manual.','bad');return;
+    }
+    $('start-camera').disabled=true;
+    try{
+      if(!scanner) scanner=new Html5Qrcode('reader', {verbose:false, formatsToSupport:[
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.UPC_A
+      ]});
+      $('reader').style.display='block';
+      await scanner.start({facingMode:'environment'}, {
+        fps:20,
+        aspectRatio:1.333,
+        disableFlip:false,
+        // Área de leitura otimizada com feixe fino e preciso
+        qrbox: (viewWidth, viewHeight) => {
+          const width = Math.floor(viewWidth * 0.9);
+          const height = 52;
+          return { width, height };
+        },
+        videoConstraints: { facingMode: 'environment' }
+      }, (decodedText)=>{
+        const normalized=normalize(decodedText);const now=Date.now();
+        if(normalized===lastRead.code && now-lastRead.at<1400)return;
+        lastRead={code:normalized,at:now};
+        scanCode(decodedText,'camera');
+      }, ()=>{});
+      cameraRunning=true;$('start-camera').hidden=true;$('stop-camera').hidden=false;$('flash-toggle').hidden=false; 
+      $('flash-toggle').textContent='🔦 Ligar flash'; $('flash-toggle').setAttribute('aria-pressed','false');
+      setStatus('Câmera aberta. Aponte para o código de barras da maquineta.','');
+    }catch(err){
+      $('reader').style.display='none';
+      const detail=(err&&err.message)?' ('+err.message+')':'';
+      setStatus('Não foi possível abrir a câmera. Verifique as permissões do navegador e se está em HTTPS.'+detail,'bad');
+    }finally{$('start-camera').disabled=false;}
+  }
+
+  async function stopCamera(){
+    if(scanner&&cameraRunning){try{await scanner.stop();}catch(e){} try{scanner.clear();}catch(e){} scanner=null;}
+    cameraRunning=false;$('reader').style.display='none';$('start-camera').hidden=false;$('stop-camera').hidden=true;$('flash-toggle').hidden=true;$('flash-toggle').setAttribute('aria-pressed','false');
+  }
+
+  $('start-camera').addEventListener('click',startCamera);
+  $('stop-camera').addEventListener('click',stopCamera);
+  let flashOn=false;
+  $('flash-toggle').addEventListener('click',async()=>{
+    if(!scanner||!cameraRunning)return;
+    try{await scanner.applyVideoConstraints({advanced:[{torch:!flashOn}]});flashOn=!flashOn;$('flash-toggle').textContent=flashOn?'🔦 Desligar flash':'🔦 Ligar flash';$('flash-toggle').setAttribute('aria-pressed',String(flashOn));setStatus(flashOn?'Flash ligado.':'Flash desligado.','good');}
+    catch(e){setStatus('Controle de flash indisponível neste aparelho.','warn');}
+  });
+
+  $('apply-list').addEventListener('click',()=>{
+    const parsed=parseInventory($('inventory-editor').value);
+    if(!parsed.length){alert('A lista está vazia ou não foi reconhecida.');return;}
+    if(!confirm('Aplicar '+parsed.length+' máquinas e zerar a conferência atual?'))return;
+    inventory=parsed;progress={scanned:{},extras:[]};persist();$('inventory-editor').value=inventoryToEditor();render();setStatus('Lista atualizada com sucesso.','good');switchTab('scan');
+  });
+
+  $('restore-list').addEventListener('click',()=>{
+    if(!confirm('Restaurar a lista inicial com 19 máquinas e apagar o progresso atual?'))return;
+    inventory=cloneSeed();progress={scanned:{},extras:[]};persist();$('inventory-editor').value=inventoryToEditor();render();setStatus('Lista inicial restaurada.','good');
+  });
+
+  function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
+  function download(filename,content,type){
+    const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+
+  $('export-csv').addEventListener('click',()=>{
+    const rows=[['Número de série','Situação da central','Resultado','Data/hora da leitura','Código lido','Observação']];
+    inventory.forEach(item=>{const rec=progress.scanned[keyFor(item.serial)];rows.push([item.serial,item.situation,rec?'CONFERIDA':'PENDENTE',rec&&rec.at?new Date(rec.at).toLocaleString('pt-BR'):'',rec?rec.raw:'',item.situation==='GOOD'?'Pronta venda':'Devolvida']);});
+    progress.extras.forEach(x=>rows.push([x.code,'','NÃO LISTADA',x.firstAt?new Date(x.firstAt).toLocaleString('pt-BR'):'',x.code,'Leituras: '+(x.reads||1)]));
+    const csv='\uFEFF'+rows.map(row=>row.map(csvCell).join(';')).join('\r\n');
+    download('conferencia_maquinetas_'+new Date().toISOString().slice(0,10)+'.csv',csv,'text/csv;charset=utf-8;');
+  });
+
+  $('export-pdf').addEventListener('click',()=>{
+    setStatus('Na tela de impressão, escolha Salvar como PDF.','good');
+    switchTab('check'); setTimeout(()=>window.print(),250);
+  });
+
+  $('export-txt').addEventListener('click',()=>{
+    const done=inventory.filter(isScanned);const pending=inventory.filter(x=>!isScanned(x));
+    const lines=['RELATÓRIO DE CONFERÊNCIA DE MAQUINETAS','Gerado em: '+new Date().toLocaleString('pt-BR'),'','Resumo: '+done.length+'/'+inventory.length+' conferidas; '+pending.length+' pendentes; '+progress.extras.length+' não listadas.','','CONFERIDAS',...done.map(x=>'[OK] '+x.serial+' — '+x.situation),'','PENDENTES',...pending.map(x=>'[PENDENTE] '+x.serial+' — '+x.situation),'','MÁQUINAS NÃO LISTADAS',...(progress.extras.length?progress.extras.map(x=>'[NÃO LISTADA] '+x.code+' — Leituras: '+(x.reads||1)):['Nenhuma'])];
+    download('resumo_maquinetas_'+new Date().toISOString().slice(0,10)+'.txt',lines.join('\n'),'text/plain;charset=utf-8;');
+  });
+
+  $('reset-progress').addEventListener('click',()=>{
+    if(!confirm('Zerar todas as leituras e itens não listadas?'))return;
+    progress={scanned:{},extras:[]};persist();render();setStatus('Conferência zerada.','');switchTab('scan');
+  });
+
+  $('inventory-editor').value=inventoryToEditor();
+  render();
+})();
+</script>
+</body>
+</html>
